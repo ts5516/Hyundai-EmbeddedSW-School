@@ -1,0 +1,317 @@
+# C++에서 lvalue vs rvalue (좌측값 vs 우측값)
+
+---
+
+## 목표
+
+C++에서 좌측값(lvalue)과 우측값(rvalue)의 개념을 이해하고, 대입 가능성, 주소 보유 여부, 수명의 차이를 구분할 수 있도록 한다.
+
+---
+
+## lvalue와 rvalue의 개념
+
+| 구분    | 설명 |
+|---------|------|
+| lvalue  | 메모리에 저장된 값으로, **주소를 가질 수 있음**. 대입 연산의 왼쪽에 올 수 있음 |
+| rvalue  | 계산 결과로 생기는 임시 값. **주소가 없고**, 대입 연산의 오른쪽에 주로 옴 |
+
+```cpp
+int a = 10;   // a는 lvalue, 10은 rvalue
+int y = x + 5; // x, y는 lvalue, x+5는 rvalue
+````
+
+* lvalue는 메모리에 저장 가능하며, 참조(`&`)나 대입이 가능함
+* rvalue는 임시적으로 사용되며, 주소가 없고 대입 대상이 될 수 없음
+
+---
+
+## 연습 예제: lvalue와 rvalue 판별
+
+```cpp
+#include <iostream>
+#include <vector>
+
+int main() {
+	int x = 5;        // x: lvalue, 5: rvalue
+	int y = x;        // y: lvalue, x: rvalue context
+	int z = 10;       // z: lvalue
+
+	int sum = x + y + z; // sum: lvalue, x+y+z: rvalue
+
+	std::vector<int> vect;
+	vect.push_back(11);
+	int size = vect.size(); // size: lvalue, vect.size(): rvalue
+
+	return 0;
+}
+```
+
+* x는 변수이므로 lvalue지만, `int y = x;`에서는 rvalue처럼 쓰임 (rvalue context)
+
+---
+
+## rvalue는 임시 객체
+
+* rvalue는 **임시적인 값**
+* 해당 코드 라인을 벗어나면 메모리에서 제거됨
+* 참조가 불가능하며 값 변경도 불가
+
+---
+
+## lvalue는 반드시 대입 가능한 메모리여야 함
+
+```cpp
+int a;
+a = 3;   // OK: a는 lvalue
+
+4 = a;   // Error: 리터럴 4는 rvalue이므로 대입 불가
+5 = 6;   // Error: 둘 다 rvalue
+```
+
+→ 대입문 왼쪽에 lvalue가 아닌 리터럴을 쓰면 컴파일 에러 발생
+
+---
+
+## 다양한 lvalue의 예시
+
+```cpp
+int arr[3] = { 0, 0, 0 };
+arr[2] = 33;   // OK: 배열 요소는 lvalue
+
+int a = 3;
+int* pa = &a;
+*pa = 10;      // OK: 포인터 대상체도 lvalue
+```
+
+* 배열 요소
+* 포인터로 접근한 대상
+* 구조체 멤버 등도 모두 lvalue
+
+---
+
+## 특수한 경우
+
+### read-only lvalue
+
+```cpp
+const int a = 20;
+a = 30; // Error: a는 수정 불가능한(read-only) lvalue
+```
+
+* 주소는 있으나, 값을 변경할 수 없음
+
+---
+
+### rvalue context
+
+```cpp
+int a = 10;
+int b = 20;
+b = a; // 이 때 a는 lvalue지만, rvalue context에서 사용됨
+```
+
+* lvalue라도 rvalue 위치에 오면 rvalue로 변환되어 사용됨
+
+---
+
+## 참고: 시대별 정의의 차이
+
+* C와 C++11, C++17에서 lvalue, rvalue의 정의는 조금씩 다름
+* 특히 C++에서는 rvalue reference (`&&`), xvalue, glvalue 등으로 분화됨
+
+→ 지금은 C++11 이전의 단순 개념부터 명확히 숙지하는 것이 중요함
+
+---
+
+# 이동 의미론 (Move Semantics)
+
+---
+
+## 목표
+
+복사보다 효율적인 자원 이전 방식인 **이동 의미론(Move Semantics)**을 이해하고, `std::move`, 이동 생성자 및 이동 대입 연산자의 개념과 사용 이유를 숙지한다.
+
+---
+
+## 이동 의미론 개요
+
+### 주요 개념
+
+- rvalue reference (`T&&`)
+- 복사(Copy) vs 이동(Move)의 차이
+- `std::move()` 함수의 역할
+- 이동 생성자 / 이동 대입 연산자
+- 성능 최적화를 위한 활용
+
+---
+
+## 이동 의미론이란?
+
+- 객체가 소유한 자원(예: 힙 메모리)을 **복사하지 않고** 다른 객체로 **"이동"**시키는 방식
+- 복사에 비해 **자원 낭비가 적고 빠르다**
+- 이동 후, 원본 객체는 자원을 **반납하거나 초기화**된다
+
+---
+
+## 복사 vs 이동
+
+| 구분  | 복사(Copy) | 이동(Move) |
+|-------|------------|------------|
+| 자원 처리 | 메모리를 새로 복사 | 포인터 등 내부 자원 소유권을 이전 |
+| 성능 | 상대적으로 느림 | 상대적으로 빠름 |
+| 원본 상태 | 그대로 유지 | 비워짐 혹은 초기화됨 |
+
+---
+
+## std::move의 역할
+
+- `std::move()`는 **이동을 직접 수행하지 않는다**
+- 단순히 **lvalue → rvalue**로 형 변환 (캐스팅)해주는 함수
+- 이를 통해 이동 생성자 / 이동 대입 연산자를 **컴파일러가 호출할 수 있게** 해줌
+
+예시:
+
+```cpp
+std::string str = "abc";
+std::string&& r_str = static_cast<std::string&&>(str);
+````
+
+---
+
+## 이동 생성자 / 이동 대입 연산자
+
+### 이동 생성자 (Move Constructor)
+
+* 새 객체 생성 시, rvalue로부터 자원을 이동시킴
+* 함수 시그니처: `ClassName(ClassName&& other);`
+
+### 이동 대입 연산자 (Move Assignment Operator)
+
+* 이미 생성된 객체에 rvalue를 대입할 때 호출됨
+* 함수 시그니처: `ClassName& operator=(ClassName&& other);`
+
+---
+
+## 이동 연산자가 호출되는 시점
+
+* `T b = std::move(a);` → 이동 생성자 호출
+* `b = std::move(a);` → 이동 대입 연산자 호출
+* 이동 연산자가 없을 경우 → 복사 연산자 호출 (성능 저하)
+
+---
+
+## Rule of Six (6대 특별 함수)
+
+C++에서 자원을 직접 관리하는 경우 반드시 아래 6개 함수를 정의해야 함
+
+1. 기본 생성자
+2. 소멸자
+3. 복사 생성자
+4. 복사 대입 연산자
+5. 이동 생성자
+6. 이동 대입 연산자
+
+---
+
+## 이동 구현 요령
+
+1. `std::move()`를 사용하여 rvalue 캐스팅
+2. 이동 생성자 / 이동 대입 연산자 정의
+
+   * 내부 포인터 또는 자원을 단순히 복사하는 것이 아니라 **소유권을 이전**
+   * 원본 객체의 자원은 `nullptr` 또는 기본값으로 초기화
+3. STL 컨테이너(`std::string`, `std::vector`)는 이미 이동 구현이 되어 있음
+
+---
+
+## 이동 의미론 적용 시 주의점
+
+* 이동된 객체는 더 이상 유효한 상태가 아님
+* 이동 대상 객체의 자원을 명확히 비워주어야 메모리 오류 방지 가능
+* 이동 후 객체를 **다시 사용하려면 안전하게 초기화되어 있어야 함**
+
+---
+
+## 이동의 이점
+
+* 대용량 데이터를 다루는 클래스에서 복사보다 성능이 크게 향상됨
+* 함수 반환 시 복사를 피하고 이동할 수 있어 효율적
+* 복사가 불가능한 객체도 이동을 통해 처리 가능
+
+---
+
+# RAII & 스마트 포인터 & nullptr
+
+---
+
+## 1. RAII (Resource Acquisition Is Initialization)
+
+### 개념
+
+- **RAII**는 "자원 획득이 곧 초기화"라는 의미.
+- **생성자에서 자원을 할당**하고, **소멸자에서 자원을 해제**하는 C++ 객체 관리 기법.
+- **객체의 수명과 자원의 수명을 일치**시킴.
+
+### 장점
+
+- 메모리 누수 방지
+- 예외 상황에서도 안전한 자원 해제
+- 스마트 포인터가 RAII 기반으로 동작함
+
+---
+
+## 2. 스마트 포인터 (Smart Pointer)
+
+### 개념
+
+- `new`로 생성한 메모리를 `delete` 없이 자동으로 관리해주는 포인터 래퍼
+- 내부에 원시 포인터를 보유하며, **RAII 원칙에 따라 소멸 시 자원을 자동 해제**
+- 메모리 누수, 댕글링 포인터 등의 문제 해결
+
+### 종류
+
+| 종류             | 설명 |
+|------------------|------|
+| `std::unique_ptr` | 단독 소유 (소유권 이전만 가능) |
+| `std::shared_ptr` | 공유 소유 (참조 카운팅 기반) |
+| `std::weak_ptr`   | `shared_ptr`를 감시 (소유권 없음) |
+
+> `std::auto_ptr`는 C++11에서 deprecated 됨
+
+### 동작 원리
+
+- 반드시 **힙 메모리**에 할당된 객체를 관리해야 함
+- 이동 의미론 (`std::move`)과 결합해 효율적으로 자원 이전 가능
+
+### make 함수와 완벽 전달 (Perfect Forwarding)
+
+- `std::forward`를 사용하여 `lvalue/rvalue` 특성을 유지하며 객체 생성
+- `std::make_unique<T>(...)` 또는 사용자 정의 팩토리 함수 사용
+
+---
+
+## 3. nullptr vs NULL
+
+### 차이점
+
+| 구분       | `NULL`         | `nullptr`       |
+|------------|----------------|-----------------|
+| 등장 시기  | C, C++         | C++11부터 도입  |
+| 타입       | `0`으로 정의 (int 취급 가능) | 포인터 타입 전용 |
+| 위험성     | 함수 오버로딩 시 모호함 발생 가능 | 안전하고 명확한 포인터 표현 |
+| 추천 여부  | ❌ 지양        | ✅ 적극 권장     |
+
+### 예시 비교
+
+```cpp
+void foo(int) { std::cout << "int" << std::endl; }
+void foo(void*) { std::cout << "pointer" << std::endl; }
+
+foo(NULL);     // → "int" 호출 (모호성)
+foo(nullptr);  // → "pointer" 호출 (명확)
+````
+
+### 결론
+
+* Modern C++에서는 **무조건 `nullptr` 사용**이 권장된다
+* C 언어에는 `nullptr`이 없어 `NULL`만 사용 가능
