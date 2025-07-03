@@ -7,9 +7,9 @@
 ### 4. [자동차 소프트웨어 개발 프로세스](https://github.com/ts5516/Hyundai-EmbeddedSW-School/tree/master/%EC%9E%90%EB%8F%99%EC%B0%A8%20%EC%86%8C%ED%94%84%ED%8A%B8%EC%9B%A8%EC%96%B4%20%EA%B0%9C%EB%B0%9C%20%ED%94%84%EB%A1%9C%EC%84%B8%EC%8A%A4)
 ### 5. [임베디드 소프트웨어 개발 기초](https://github.com/ts5516/Hyundai-EmbeddedSW-School/tree/master/%EC%9E%84%EB%B2%A0%EB%94%94%EB%93%9C%20%EC%86%8C%ED%94%84%ED%8A%B8%EC%9B%A8%EC%96%B4%20%EA%B0%9C%EB%B0%9C%20%EA%B8%B0%EC%B4%88)
 ### 6. [임베디드 C 프로그래밍 기초](https://github.com/ts5516/Hyundai-EmbeddedSW-School/tree/master/%EC%9E%84%EB%B2%A0%EB%94%94%EB%93%9C%20C%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D%20%EA%B8%B0%EC%B4%88)
-### 7. 임베디드 C 프로그래밍 코드 최적화 기법
-### 8. 임베디드 리눅스 시스템 프로그래밍
-### 9. 임베디드 MCU 프로그래밍
+### 7. [임베디드 MCU 프로그래밍](https://github.com/ts5516/Hyundai-EmbeddedSW-School/tree/master/%EC%9E%84%EB%B2%A0%EB%94%94%EB%93%9C%20MCU%20%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D)
+### 8. [임베디드 리눅스 시스템 프로그래밍](https://github.com/ts5516/Hyundai-EmbeddedSW-School/tree/master/%EC%9E%84%EB%B2%A0%EB%94%94%EB%93%9C%20%EB%A6%AC%EB%88%85%EC%8A%A4%20%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D)
+### 9. 임베디드 C 프로그래밍 코드 최적화 기법
 ### 10. 소프트웨어 요구사항 분석 및 설계
 ### 11. 소프트웨어 테스팅
 ### 12. 차량용 이더넷 통신 이해
